@@ -1,0 +1,50 @@
+{
+    "name": "pruneridge",
+    "holes": [
+        {
+            "number": "1",
+            "handicap": "4",
+            "par": "3"
+        },
+        {
+            "number": "2",
+            "handicap": "9",
+            "par": "3"
+        },
+        {
+            "number": "3",
+            "handicap": "1",
+            "par": "4"
+        },
+        {
+            "number": "4",
+            "handicap": "3",
+            "par": "4"
+        },
+        {
+            "number": "5",
+            "handicap": "5",
+            "par": "3"
+        },
+        {
+            "number": "6",
+            "handicap": "6",
+            "par": "3"
+        },
+        {
+            "number": "7",
+            "handicap": "7",
+            "par": "3"
+        },
+        {
+            "number": "8",
+            "handicap": "8",
+            "par": "3"
+        },
+        {
+            "number": "9",
+            "handicap": "2",
+            "par": "4"
+        }
+    ]
+}
