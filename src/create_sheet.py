@@ -34,14 +34,52 @@ def get_credentials():
   return creds
 
 
+def format_sheet(sheet_id):
+  return {'requests': [
+        {
+            'addConditionalFormatRule': {
+                'rule': {
+                    'ranges': [
+                        {
+                            'sheetId': sheet_id,
+                            'startColumnIndex': 4,
+                            'endColumnIndex': 5,
+                        }
+                    ],
+                    'booleanRule': {
+                        'condition': {
+                            'type': 'NUMBER_GREATER',
+                            'values': [
+                                {
+                                    'userEnteredValue': '2'
+                                }
+                            ]
+                        },
+                        'format': {
+                            'backgroundColor': {
+                                'red': 1.0,
+                                'green': 0.0,
+                                'blue': 0.0
+                            }
+                        }
+                    }
+                },
+                # 'index': 0
+            }
+        }
+    ]
+  }
+
+
 def main():
   creds = get_credentials()
   sheet_name = 'Test Sheet'
+
   try:
     service = build("sheets", "v4", credentials=creds)
 
     # Create sheet
-    service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body={
+    response = service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body={
       "requests": {
         "addSheet": {
           "properties": {
@@ -52,6 +90,8 @@ def main():
       }
     }).execute()
 
+    sheet_id = response['replies'][0]['addSheet']['properties']['sheetId']
+
     # Insert values into sheet
     service.spreadsheets().values().append(
       spreadsheetId=GOLF_TRACKER_SHEET_ID,
@@ -59,6 +99,9 @@ def main():
       valueInputOption="USER_ENTERED",
       body= {'values': [COLUMNS]}
     ).execute()
+
+    # Apply formatting
+    service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body=format_sheet(sheet_id)).execute()
 
   except HttpError as err:
     print(err)
