@@ -1,4 +1,5 @@
 import os.path
+import formatting
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -11,100 +12,66 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 GOLF_TRACKER_SHEET_ID = "1R_HHJRloAsyP7BuQFoxtXIzBhFHmTd5M8CiNr-QzccY"
 COLUMNS = ['Hole', 'Par', 'Score', 'Diff', 'Putts', 'Tee Shot', 'Chips', 'STG']
 
+
 def get_credentials():
-  creds = None
-  # The file token.json stores the user's access and refresh tokens, and is
-  # created automatically when the authorization flow completes for the first
-  # time.
-  if os.path.exists("token.json"):
-    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-  # If there are no (valid) credentials available, let the user log in.
-  if not creds or not creds.valid:
-    if creds and creds.expired and creds.refresh_token:
-      creds.refresh(Request())
-    else:
-      flow = InstalledAppFlow.from_client_secrets_file(
-          "credentials.json", SCOPES
-      )
-      creds = flow.run_local_server(port=0)
-    # Save the credentials for the next run
-    with open("token.json", "w") as token:
-      token.write(creds.to_json())
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
 
-  return creds
-
-
-def format_sheet(sheet_id):
-  return {'requests': [
-        {
-            'addConditionalFormatRule': {
-                'rule': {
-                    'ranges': [
-                        {
-                            'sheetId': sheet_id,
-                            'startColumnIndex': 4,
-                            'endColumnIndex': 5,
-                        }
-                    ],
-                    'booleanRule': {
-                        'condition': {
-                            'type': 'NUMBER_GREATER',
-                            'values': [
-                                {
-                                    'userEnteredValue': '2'
-                                }
-                            ]
-                        },
-                        'format': {
-                            'backgroundColor': {
-                                'red': 1.0,
-                                'green': 0.0,
-                                'blue': 0.0
-                            }
-                        }
-                    }
-                },
-                # 'index': 0
-            }
-        }
-    ]
-  }
+    return creds
 
 
 def main():
-  creds = get_credentials()
-  sheet_name = 'Test Sheet'
+    creds = get_credentials()
+    sheet_name = 'Test Sheet'
 
-  try:
-    service = build("sheets", "v4", credentials=creds)
+    try:
+        service = build("sheets", "v4", credentials=creds)
 
-    # Create sheet
-    response = service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body={
-      "requests": {
-        "addSheet": {
-          "properties": {
-            "title": sheet_name,
-            "index": 1
-          },
-        }
-      }
-    }).execute()
+        # Create sheet
+        response = service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body={
+            "requests": {
+                "addSheet": {
+                    "properties": {
+                        "title": sheet_name,
+                        "index": 1
+                    },
+                }
+            }
+        }).execute()
 
-    sheet_id = response['replies'][0]['addSheet']['properties']['sheetId']
+        sheet_id = response['replies'][0]['addSheet']['properties']['sheetId']
 
-    # Insert values into sheet
-    service.spreadsheets().values().append(
-      spreadsheetId=GOLF_TRACKER_SHEET_ID,
-      range=sheet_name,
-      valueInputOption="USER_ENTERED",
-      body= {'values': [COLUMNS]}
-    ).execute()
+        # Insert values into sheet
+        service.spreadsheets().values().append(
+            spreadsheetId=GOLF_TRACKER_SHEET_ID,
+            range=sheet_name,
+            valueInputOption="USER_ENTERED",
+            body={'values': [COLUMNS]}
+        ).execute()
 
-    # Apply formatting
-    service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID, body=format_sheet(sheet_id)).execute()
+        # Apply formatting
+        service.spreadsheets().batchUpdate(spreadsheetId=GOLF_TRACKER_SHEET_ID,
+                                           body=formatting.format_sheet(sheet_id)).execute()
 
-  except HttpError as err:
-    print(err)
+    except HttpError as err:
+        print(err)
+
 
 if __name__ == "__main__":
-  main()
+    main()
