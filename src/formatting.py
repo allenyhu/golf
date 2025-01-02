@@ -1,40 +1,31 @@
+import gspread
+from gspread_formatting import *
 
-def format_sheet(sheet_id):
-    return {
-        'requests': [
-            {
-                'addConditionalFormatRule': create_putting_rule(sheet_id)
-                
-            }
-        ]
-    }
+client = gspread.oauth()
+sh = client.open("Golf Tracker").worksheet('Penmar 12/01/24')
+format_range = "E:E"
 
 
-def create_putting_rule(sheet_id):
-    return {
-        'rule': {
-            'ranges': [
-                {
-                    'sheetId': sheet_id,
-                    'startColumnIndex': 4,
-                    'endColumnIndex': 5,
-                }
-            ],
-            'booleanRule': {
-                'condition': {
-                    'type': 'NUMBER_GREATER',
-                    'values': [
-                        {
-                            'userEnteredValue': '2'
-                        }
-                    ]
-                },
-                'format': {
-                    'backgroundColor': {
-                        'red': 1.0,
-                        'green': 0,
-                        'blue': 0
-                    }
-                }
-            }
-        }}
+current_rules = get_conditional_format_rules(sh)
+current_rules.extend(new_rules)
+
+current_rules.save()
+
+
+def create_putting_rules():
+    return [
+        ConditionalFormatRule(
+            ranges=[GridRange.from_a1_range(format_range, sh)],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition('NUMBER_GREATER', ['2']),
+                format=CellFormat(backgroundColor=Color(1, 0, 0))  # Red
+            )
+        ),
+        ConditionalFormatRule(
+            ranges=[GridRange.from_a1_range(format_range, sh)],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition('NUMBER_LESS', ['2']),
+                format=CellFormat(backgroundColor=Color(0, 1, 0))  # Green
+            )
+        )
+    ]
