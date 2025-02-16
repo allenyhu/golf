@@ -34,7 +34,7 @@ def get_sheet_rules(sheet):
     ]
     
     # Add score difference formatting (column D)
-    score_rules = create_threshold_formatting(sheet, "D:D", "0")
+    score_rules = create_threshold_formatting(sheet, "D:D", "2")
     rules.extend(score_rules)
     
     # Add putting formatting (column E) 
