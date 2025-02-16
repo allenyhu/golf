@@ -20,12 +20,42 @@ def create_threshold_formatting(sheet, cell_range, threshold):
         )
     ]
 
-client = gspread.oauth()
-sh = client.open("Golf Tracker").worksheet('Penmar 11/01/24')
+def get_sheet_rules(sheet):
+    """Creates and returns formatting rules for the golf score sheet"""
+    rules = [
+        # Make first row bold
+        ConditionalFormatRule(
+            ranges=[GridRange.from_a1_range("A1:I1", sheet)],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition('CUSTOM_FORMULA', ['=ROW()=1']),
+                format=CellFormat(textFormat=TextFormat(bold=True))
+            )
+        )
+    ]
+    
+    # Add score difference formatting (column D)
+    score_rules = create_threshold_formatting(sheet, "D:D", "0")
+    rules.extend(score_rules)
+    
+    # Add putting formatting (column E) 
+    putting_rules = create_threshold_formatting(sheet, "E:E", "2")
+    rules.extend(putting_rules)
+    
+    # Add strokes-to-green formatting (column H)
+    # Use par value from column B as threshold
+    stg_rules = create_threshold_formatting(sheet, "H:H", "=B2")  # References par value
+    rules.extend(stg_rules)
+    
+    return rules
 
-sheet_rules = get_conditional_format_rules(sh)
+def format_sheet(sheet_name):
+    sheet = gspread.oauth().open("Golf Tracker").worksheet(sheet_name)
+    
+    # Get new rules
+    new_rules = get_sheet_rules(sheet)
+    
+    # Get existing rules, extend with new rules and save
+    sheet_rules = get_conditional_format_rules(sheet)
+    sheet_rules.extend(new_rules)
+    sheet_rules.save()
 
-putting_rules = create_putting_rules(sheet, "E:E", "2")
-sheet_rules.extend(putting_rules)
-
-sheet_rules.save()
