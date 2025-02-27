@@ -1,5 +1,8 @@
 import gspread
 from gspread_formatting import *
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 
 def create_threshold_formatting(sheet, cell_range, threshold):
@@ -51,14 +54,58 @@ def get_sheet_rules(sheet):
     
     return rules
 
-def format_sheet(sheet_name):
-    sheet = gspread.oauth().open("Golf Tracker").worksheet(sheet_name)
-    
-    # Get new rules
-    new_rules = get_sheet_rules(sheet)
-    
-    # Get existing rules, extend with new rules and save
-    sheet_rules = get_conditional_format_rules(sheet)
-    sheet_rules.extend(new_rules)
-    sheet_rules.save()
+def format_sheet(sheet_id):
+    """Apply formatting using Google Sheets API v4"""
+    requests = {
+        "requests": [
+            {
+                "addConditionalFormatRule": {
+                    "rule": {
+                        "ranges": [{"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1}],
+                        "booleanRule": {
+                            "condition": {
+                                "type": "CUSTOM_FORMULA",
+                                "values": [{"userEnteredValue": "=ROW()=1"}]
+                            },
+                            "format": {
+                                "textFormat": {"bold": True}
+                            }
+                        }
+                    }
+                }
+            },
+            # Score difference formatting (column D)
+            create_threshold_rule(sheet_id, 3, 3, "2"),  # Column D (0-based index 3)
+            # Putting formatting (column E)
+            create_threshold_rule(sheet_id, 4, 4, "2"),  # Column E
+            # Chipping formatting (column G)
+            create_threshold_rule(sheet_id, 6, 6, "1"),  # Column G
+            # STG formatting (column H)
+            create_threshold_rule(sheet_id, 7, 7, "=B:B")  # Column H
+        ]
+    }
+    return requests
+
+def create_threshold_rule(sheet_id, start_col, end_col, threshold):
+    """Creates threshold-based conditional formatting rules"""
+    return {
+        "addConditionalFormatRule": {
+            "rule": {
+                "ranges": [{
+                    "sheetId": sheet_id,
+                    "startColumnIndex": start_col,
+                    "endColumnIndex": end_col + 1
+                }],
+                "booleanRule": {
+                    "condition": {
+                        "type": "NUMBER_GREATER",
+                        "values": [{"userEnteredValue": threshold}]
+                    },
+                    "format": {
+                        "backgroundColor": {"red": 1, "green": 0, "blue": 0}
+                    }
+                }
+            }
+        }
+    }
 
