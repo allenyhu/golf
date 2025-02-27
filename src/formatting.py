@@ -40,10 +40,13 @@ def get_sheet_rules(sheet):
     # Add putting formatting (column E) 
     putting_rules = create_threshold_formatting(sheet, "E:E", "2")
     rules.extend(putting_rules)
+
+    chipping_rules = create_threshold_formatting(sheet, "G:G", "1")
+    rules.extend(chipping_rules)
     
     # Add strokes-to-green formatting (column H)
     # Use par value from column B as threshold
-    stg_rules = create_threshold_formatting(sheet, "H:H", "=B2")  # References par value
+    stg_rules = create_threshold_formatting(sheet, "H:H", "=B:B")  # References par value
     rules.extend(stg_rules)
     
     return rules
