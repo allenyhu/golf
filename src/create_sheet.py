@@ -38,23 +38,21 @@ def get_credentials():
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Please provide a sheet name as a command line argument")
-        sys.exit(1)
-
     creds = get_credentials()
-    sheet_name = sys.argv[1]
+    sheet_name = sys.argv[1] if len(sys.argv) > 1 else 'Test Sheet'
 
     try:
         service = build("sheets", "v4", credentials=creds)
         
-        create_new_sheet(service, sheet_name)
-
+        # Get the sheet ID from create_new_sheet
+        sheet_id = create_new_sheet(service, sheet_name)
         sheet_data = prepare_sheet_data()
         
+        # Upload data first
         upload_sheet_data(service, sheet_name, sheet_data)
-        formatting.format_sheet(sheet_name)
-        # apply_sheet_formatting(service, sheet_name)
+        
+        # Then apply formatting using the numeric sheet_id
+        apply_sheet_formatting(service, int(sheet_id))  # Convert to int to ensure it's a number
 
     except HttpError as err:
         print(err)
@@ -95,6 +93,13 @@ def upload_sheet_data(service, sheet_name, data):
         body={'values': data}
     ).execute()
 
+def apply_sheet_formatting(service, sheet_id):
+    """Applies the predefined formatting to the sheet"""
+    format_requests = formatting.format_sheet(sheet_id)
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=GOLF_TRACKER_SHEET_ID,
+        body=format_requests
+    ).execute()
 
 if __name__ == "__main__":
     main()
