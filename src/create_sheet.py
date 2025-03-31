@@ -81,6 +81,22 @@ def prepare_sheet_data():
     for i in range(1, 19):
         row = [str(i)] + [''] * (len(COLUMNS) - 1)  # Empty cells for other columns
         data.append(row)
+
+    # Add summary rows
+    summary_rows = [
+        ["Score", "=SUM(C2:C19)"],
+        ["Extra Putts", "=SUM(FILTER(E2:E19 - 2, E2:E19 - 2 >= 0))"],
+        ["Extra Chips", "=SUM(FILTER(G2:G19 - 1, G2:G19 - 1 >= 0))"],
+        ["Pars", "=COUNTIF(D2:D19,\"<=0\")"],
+    ]
+    
+    # Add empty row as separator
+    data.append(["", ""])
+    data.append(["", ""])
+    
+    # Add all summary rows
+    for row in summary_rows:
+        data.append(row + [""] * (len(COLUMNS) - 2))  # Pad remaining columns with empty strings
         
     return data
 
