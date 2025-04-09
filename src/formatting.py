@@ -103,7 +103,8 @@ def create_threshold_rule(sheet_id, col_num, threshold):
                     "ranges": [{
                         "sheetId": sheet_id,
                         "startColumnIndex": col_index,
-                        "endColumnIndex": col_index + 1
+                        "endColumnIndex": col_index + 1,
+                        "startRowIndex": 1
                     }],
                     "booleanRule": {
                         "condition": {
