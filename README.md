@@ -13,7 +13,11 @@ Goals
 
 # Generate course objects
 
-From root directory, run `python src/generate_course_json.py <course_name>`.
+From root directory, run `uv src/generate_course_json.py <course_name>`.
 It is expected for there to be a `<course_name>.txt` to be present in the project root directory.
 
 The format of the `.txt` file is `<hole number>,<hole par>,<hole handicap>`
+
+# Usage
+`uv sync`
+`uv run src/create_sheet.py "<sheet name>"`
