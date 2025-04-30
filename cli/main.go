@@ -4,26 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	"cli/cmd"
 )
 
 func main() {
-	var rootCmd = &cobra.Command{
-		Use:   "golf",
-		Short: "Golf score tracking CLI",
-	}
-
-	var helloCmd = &cobra.Command{
-		Use:   "hello",
-		Short: "Says hello",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Hello, Allen")
-		},
-	}
-
-	rootCmd.AddCommand(helloCmd)
-
-	if err := rootCmd.Execute(); err != nil {
+	if err := cmd.RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
