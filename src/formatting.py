@@ -8,10 +8,10 @@ def format_sheet(sheet_id):
     """Apply formatting using Google Sheets API v4"""
     # Column rules with (column_number, threshold)
     column_rules = [
-        (4, "2"),    # Score difference (column D)
+        (4, "1"),    # Score difference (column D)
         (5, "2"),    # Putting (column E)
         (7, "1"),    # Chipping (column G)
-        (8, "=B:B")  # Strokes-to-green (column H)
+        (8, "=B:B-1")  # Strokes-to-green (column H)
     ]
     
     requests = {
