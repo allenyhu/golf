@@ -5,16 +5,25 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+
+	"cli/models"
 )
 
 // Model represents the program's state
 type model struct {
-	cursor   int
-	choices  []string
-	selected bool
-	quitting bool
-	holes    int
-	prompt   string
+	choicesCursor     int
+	choices           []string
+	selected          bool
+	quitting          bool
+	holes             int
+	prompt            string
+	previousSelection string
+	modelsCursor      int
+	models            []tea.Model
+
+	// need a state that toggles which model should be used
+	// then send message to the model
+	// https://www.youtube.com/watch?v=uJ2egAkSkjg
 }
 
 // Initial model
@@ -22,7 +31,16 @@ func initialModel() model {
 	return model{
 		choices: []string{"Yes", "No"},
 		prompt:  "Would you like to start tracking your golf score?\n\n",
+		models: []tea.Model{
+			models.HolesModel{
+				Choices: []string{"9", "18"},
+				Prompt:  "How many holes did you play?\n\n",
+			},
+			models.HoleModel{},
+		},
+		modelsCursor: -1,
 	}
+
 }
 
 func (m model) Init() tea.Cmd {
@@ -37,16 +55,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case "enter":
-			if m.choices[m.cursor] == "Yes" {
+			if m.choices[m.choicesCursor] == "Yes" {
 				m.selected = true
+				m.previousSelection = m.choices[m.choicesCursor]
+
+				m.modelsCursor++
+				newModel := m.models[m.modelsCursor]
+
+				// need to fix model progression now
+				m.prompt = newModel.Prompt
+
+				// choice is not always going to be preset for Model
+				// is there a way to release control to the child model
+				m.choicesCursor = 0
+				m.choices = newModel.Choices
+
+				return newModel, nil
 			} else {
 				m.quitting = true
 				return m, tea.Quit
 			}
 		case "down", "j":
-			m.cursor = (m.cursor + 1) % len(m.choices)
+			m.choicesCursor = (m.choicesCursor + 1) % len(m.choices)
 		case "up", "k":
-			m.cursor = (m.cursor - 1 + len(m.choices)) % len(m.choices)
+			m.choicesCursor = (m.choicesCursor - 1 + len(m.choices)) % len(m.choices)
 		}
 	}
 	return m, nil
@@ -56,16 +88,17 @@ func (m model) View() string {
 	if m.quitting {
 		return "Quitting...\n"
 	}
+	s := ""
 	if m.selected {
-		choice := m.choices[m.cursor]
-		return fmt.Sprintf("You chose: %s\n", choice)
+		s += fmt.Sprintf("You chose: %s\n", m.previousSelection)
+
 	}
 
-	s := m.prompt
+	s += m.prompt
 
 	for i, choice := range m.choices {
 		cursor := " "
-		if m.cursor == i {
+		if m.choicesCursor == i {
 			cursor = ">"
 		}
 		s += fmt.Sprintf("%s %s\n", cursor, choice)
@@ -79,7 +112,8 @@ var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start tracking golf score",
 	Run: func(cmd *cobra.Command, args []string) {
-		p := tea.NewProgram(initialModel())
+		// p := tea.NewProgram(initialModel())
+		p := tea.NewProgram(models.NewHoleModel())
 		m, err := p.Run()
 		if err != nil {
 			fmt.Printf("Error running program: %v", err)
@@ -88,7 +122,7 @@ var startCmd = &cobra.Command{
 
 		// Type assert the final model to access its fields
 		finalModel := m.(model)
-		if !finalModel.quitting && finalModel.selected && finalModel.cursor == 0 {
+		if !finalModel.quitting && finalModel.selected && finalModel.choicesCursor == 0 {
 			fmt.Println("Starting golf score tracking...")
 			// Add your score tracking logic here
 		}
