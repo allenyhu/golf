@@ -2,33 +2,30 @@ package models
 
 import (
 	"fmt"
+	"strings"
+
+	"encoding/json"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type RoundModel struct {
-	Course        CourseModel
-	courseEntered bool
-
-	CurrentHole int
-	Holes       []HoleModel
-	Done        bool
-	Quitting    bool
+	Course        CourseModel `json:"course"`
+	courseEntered bool        `json:"-"`
+	CurrentHole   int         `json:"current_hole"`
+	Holes         []HoleModel `json:"holes"`
+	Done          bool        `json:"done"`
+	Quitting      bool        `json:"quitting"`
 }
 
 func NewRoundModel(numHoles int) RoundModel {
-	// holes := make([]HoleModel, numHoles)
-	// for i := range holes {
-	// 	holes[i] = NewHoleModel()
-	// }
-
 	return RoundModel{
 		CurrentHole:   0,
 		Course:        NewCourseModel(),
 		courseEntered: false,
-		// Holes:       holes,
-		Done:     false,
-		Quitting: false,
+		Done:          false,
+		Quitting:      false,
 	}
 }
 
@@ -80,6 +77,64 @@ func (m RoundModel) generateSummary() string {
 	return summary
 }
 
+func (m RoundModel) saveRound() {
+	type holeData struct {
+		Par       int    `json:"par"`
+		Score     int    `json:"score"`
+		TeeShot   string `json:"teeshot"`
+		Putts     int    `json:"putts"`
+		Chips     int    `json:"chips"`
+		Penalties int    `json:"penalties"`
+	}
+	type roundData struct {
+		Name   string     `json:"name"`
+		Date   string     `json:"date"`
+		Holes  int        `json:"holes"`
+		Rounds []holeData `json:"hole_details"`
+	}
+
+	holes := make([]holeData, len(m.Holes))
+	for i, h := range m.Holes {
+		holes[i] = holeData{
+			Par:       h.Par,
+			Score:     h.Score,
+			TeeShot:   h.TeeShot,
+			Putts:     h.Putts,
+			Chips:     h.Chips,
+			Penalties: h.Penalties,
+		}
+	}
+
+	round := roundData{
+		Name:   m.Course.Name,
+		Date:   m.Course.Date,
+		Holes:  m.Course.Holes,
+		Rounds: holes,
+	}
+
+	data, err := json.MarshalIndent(round, "", "  ")
+	if err != nil {
+		fmt.Printf("Error marshaling round: %v\n", err)
+		return
+	}
+
+	filename := fmt.Sprintf("%s_%s.json", m.Course.Name, strings.ReplaceAll(m.Course.Date, "/", "-"))
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("Error creating file: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		fmt.Printf("Error writing to file: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Round saved to %s\n", filename)
+}
+
 func (m RoundModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -127,6 +182,7 @@ func (m RoundModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m RoundModel) View() string {
 	if m.Done || m.Quitting {
+		m.saveRound()
 		return m.generateSummary()
 	}
 
