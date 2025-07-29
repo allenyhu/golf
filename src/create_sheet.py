@@ -37,18 +37,64 @@ def get_credentials():
     return creds
 
 
+def read_json_data(json_path):
+    """Reads the round JSON file and returns data rows for the sheet."""
+    import json
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+        holes = data['hole_details']
+        course_name = data.get('name', '')
+        date = data.get('date', '')
+    
+    rows = []
+    for i, h in enumerate(holes, 1):
+        row = [
+            str(i),
+            h.get('par', h.get('Par', '')),
+            h.get('score', h.get('Score', '')),
+            '',  # Diff (formula in sheet)
+            h.get('putts', h.get('Putts', '')),
+            h.get('teeshot', h.get('TeeShot', '')),
+            h.get('chips', h.get('Chips', '')),
+            '',  # STG (formula in sheet)
+            h.get('penalties', h.get('Penalties', '')),
+        ]
+        rows.append(row)
+    return rows, course_name, date
+
+
+def prepare_sheet_data(rows=None):
+    """Prepares all data for the sheet in memory. If rows is given, fills with round data."""
+    data = [COLUMNS]
+    if rows:
+        data.extend(rows)
+    else:
+        for i in range(1, 19):
+            row = [str(i)] + [''] * (len(COLUMNS) - 1)
+            data.append(row)
+    # Add summary rows
+    summary_rows = [
+        ["Score", "=SUM(C2:C19)"],
+        ["Extra Putts", "=SUM(FILTER(E2:E19 - 2, E2:E19 - 2 >= 0))"],
+        ["Extra Chips", "=SUM(FILTER(G2:G19 - 1, G2:G19 - 1 >= 0))"],
+        ["Pars", "=COUNTIF(D2:D19,\"<=0\")"],
+    ]
+    data.append(["", ""])
+    data.append(["", ""])
+    for row in summary_rows:
+        data.append(row + [""] * (len(COLUMNS) - 2))
+    return data
+
+
 def main():
     creds = get_credentials()
-    sheet_name = sys.argv[1] if len(sys.argv) > 1 else 'Test Sheet'
-
+    json_path = sys.argv[1] if len(sys.argv) > 1 else None
     try:
+        rows, course_name, round_date = read_json_data(json_path)
+        sheet_name = f"{course_name} {round_date}"
         service = build("sheets", "v4", credentials=creds)
-        
-        # Get the sheet ID from create_new_sheet
         sheet_id = create_new_sheet(service, sheet_name)
-        sheet_data = prepare_sheet_data()
-        
-        # Upload data first
+        sheet_data = prepare_sheet_data(rows)
         upload_sheet_data(service, sheet_name, sheet_data)
         
         # Then apply formatting using the numeric sheet_id
@@ -72,7 +118,7 @@ def create_new_sheet(service, sheet_name):
     
     return response['replies'][0]['addSheet']['properties']['sheetId']
 
-def prepare_sheet_data():
+def prepare_sheet_data_old():
     """Prepares all data for the sheet in memory"""
     # Start with the column headers
     data = [COLUMNS]
