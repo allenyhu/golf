@@ -44,7 +44,7 @@ func (m CourseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			switch m.PromptCursor {
 			case 0:
-				fmt.Printf("NAme: %s", m.Inputs[0])
+				fmt.Printf("Name: %s", m.Inputs[0])
 				m.Name = m.Inputs[0]
 			case 1:
 				m.Date = m.Inputs[1]
@@ -58,6 +58,10 @@ func (m CourseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.done = true
 				return m, nil
+			}
+		case tea.KeyBackspace, tea.KeyDelete:
+			if len(m.Inputs[m.PromptCursor]) > 0 {
+				m.Inputs[m.PromptCursor] = m.Inputs[m.PromptCursor][:len(m.Inputs[m.PromptCursor])-1]
 			}
 		default:
 			if msg.Type == tea.KeyRunes {
