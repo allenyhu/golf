@@ -2,6 +2,7 @@
   let distance = '';
   let holes = [];
   let currentHole = 0;
+  let shotType = 'normal';
 
   function handleSubmit() {
     const dist = distance.trim();
@@ -10,8 +11,16 @@
       if (!holes[currentHole]) {
         holes = [...holes, []];
       }
-      // Add shot to current hole
-      holes[currentHole] = [...holes[currentHole], dist];
+      // Add shot to current hole, append 'b' for bunker or 'r' for recovery
+      let shotValue = dist;
+      if (shotType === 'bunker') {
+        shotValue = dist + 'b';
+      } else if (shotType === 'recovery') {
+        shotValue = dist + 'r';
+      } else if (shotType === 'putt') {
+        shotValue = dist + 'p';
+      }
+      holes[currentHole] = [...holes[currentHole], shotValue];
       holes = [...holes]; // Trigger reactivity
       distance = '';
     }
@@ -68,6 +77,27 @@
           placeholder="Enter distance"
           on:keydown={handleKeydown}
         />
+      </div>
+      <div class="form-group">
+        <label>Shot Type</label>
+        <div class="toggle-group">
+          <label class="toggle-option">
+            <input type="radio" bind:group={shotType} value="normal" />
+            <span>Normal</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" bind:group={shotType} value="putt" />
+            <span>Putt</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" bind:group={shotType} value="recovery" />
+            <span>Recovery</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" bind:group={shotType} value="bunker" />
+            <span>Bunker</span>
+          </label>
+        </div>
       </div>
       <div class="button-group">
         <button type="button" class="penalty-button" on:click={addPenaltyStroke}>Penalty Stroke</button>
@@ -158,6 +188,44 @@
   input:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .toggle-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.3s;
+    flex: 1;
+  }
+
+  .toggle-option:hover {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+  }
+
+  .toggle-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .toggle-option input[type="radio"]:checked + span {
+    font-weight: bold;
+    color: #007bff;
+  }
+
+  .toggle-option:has(input[type="radio"]:checked) {
+    border-color: #007bff;
+    background-color: #e7f3ff;
   }
 
   .current-hole {
