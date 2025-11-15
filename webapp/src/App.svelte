@@ -34,6 +34,16 @@
     }
   }
 
+  function addPenaltyStroke() {
+    // Ensure we have a hole for the current index
+    if (!holes[currentHole]) {
+      holes = [...holes, []];
+    }
+    // Add 'pen' to current hole
+    holes[currentHole] = [...holes[currentHole], 'pen'];
+    holes = [...holes]; // Trigger reactivity
+  }
+
   function formatShots(hole) {
     return hole.length > 0 ? hole.join(', ') : '-';
   }
@@ -60,9 +70,10 @@
         />
       </div>
       <div class="button-group">
-        <button type="submit">Save</button>
-        <button type="button" on:click={nextHole}>Next Hole</button>
+        <button type="button" class="penalty-button" on:click={addPenaltyStroke}>Penalty Stroke</button>
+        <button type="submit">Save Shot</button>
       </div>
+      <button type="button" on:click={nextHole}>Next Hole</button>
     </form>
 
     {#if holes.length > 0}
@@ -72,6 +83,7 @@
             <tr>
               <th>Hole</th>
               <th>Shots (yards)</th>
+              <th>Score</th>
             </tr>
           </thead>
           <tbody>
@@ -79,6 +91,7 @@
               <tr>
                 <td class="hole-number">{holeIndex + 1}</td>
                 <td>{formatShots(hole)}</td>
+                <td class="score">{hole.length}</td>
               </tr>
             {/each}
           </tbody>
@@ -180,12 +193,25 @@
     background-color: #0056b3;
   }
 
-  button[type="button"] {
+  button[type="button"]:not(.penalty-button) {
     background-color: #28a745;
   }
 
-  button[type="button"]:hover {
+  button[type="button"]:not(.penalty-button):hover {
     background-color: #218838;
+  }
+
+  .penalty-button {
+    background-color: #dc3545 !important;
+  }
+
+  .penalty-button:hover {
+    background-color: #c82333 !important;
+  }
+
+  button[type="button"]:not(.penalty-button) {
+    width: 100%;
+    margin-top: 0.5rem;
   }
 
   .table-container {
@@ -212,7 +238,7 @@
 
   th {
     padding: 1rem;
-    text-align: left;
+    text-align: center;
     font-weight: 600;
   }
 
@@ -227,12 +253,19 @@
   td {
     padding: 1rem;
     color: #333;
+    text-align: center;
   }
 
   .hole-number {
     font-weight: bold;
     background-color: #f8f9fa;
     color: #007bff;
+  }
+
+  .score {
+    font-weight: bold;
+    text-align: center;
+    color: #28a745;
   }
 
   tbody tr:hover {
