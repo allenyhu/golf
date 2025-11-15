@@ -1,13 +1,30 @@
 <script>
   let distance = '';
-  let distances = [];
+  let holes = [];
+  let currentHole = 0;
 
   function handleSubmit() {
     const dist = distance.trim();
     if (dist !== '' && !isNaN(dist) && parseFloat(dist) > 0) {
-      distances = [...distances, dist];
+      // Ensure we have a hole for the current index
+      if (!holes[currentHole]) {
+        holes = [...holes, []];
+      }
+      // Add shot to current hole
+      holes[currentHole] = [...holes[currentHole], dist];
+      holes = [...holes]; // Trigger reactivity
       distance = '';
     }
+  }
+
+  function nextHole() {
+    // Ensure current hole exists before moving to next
+    if (!holes[currentHole]) {
+      holes = [...holes, []];
+    }
+    currentHole = holes.length;
+    holes = [...holes, []];
+    distance = '';
   }
 
   function handleKeydown(event) {
@@ -16,15 +33,23 @@
       handleSubmit();
     }
   }
+
+  function formatShots(hole) {
+    return hole.length > 0 ? hole.join(', ') : '-';
+  }
 </script>
 
 <main>
   <div class="container">
-    <h1>Distance from Hole</h1>
+    <h1>Golf Round Tracker</h1>
+    
+    <div class="current-hole">
+      <p>Current Hole: <strong>{currentHole + 1}</strong></p>
+    </div>
     
     <form on:submit|preventDefault={handleSubmit}>
       <div class="form-group">
-        <label for="distance">Distance (yards)</label>
+        <label for="distance">Shot Distance (yards)</label>
         <input
           id="distance"
           type="text"
@@ -34,23 +59,26 @@
           on:keydown={handleKeydown}
         />
       </div>
-      <button type="submit">Save</button>
+      <div class="button-group">
+        <button type="submit">Save</button>
+        <button type="button" on:click={nextHole}>Next Hole</button>
+      </div>
     </form>
 
-    {#if distances.length > 0}
+    {#if holes.length > 0}
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Distance (yards)</th>
+              <th>Hole</th>
+              <th>Shots (yards)</th>
             </tr>
           </thead>
           <tbody>
-            {#each distances as dist, index}
+            {#each holes as hole, holeIndex}
               <tr>
-                <td>{index + 1}</td>
-                <td>{dist}</td>
+                <td class="hole-number">{holeIndex + 1}</td>
+                <td>{formatShots(hole)}</td>
               </tr>
             {/each}
           </tbody>
@@ -119,7 +147,24 @@
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 
+  .current-hole {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #333;
+  }
+
+  .current-hole strong {
+    color: #007bff;
+    font-size: 1.5rem;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+  }
+
   button {
+    flex: 1;
     padding: 0.75rem 2rem;
     font-size: 1rem;
     font-weight: bold;
@@ -135,13 +180,23 @@
     background-color: #0056b3;
   }
 
+  button[type="button"] {
+    background-color: #28a745;
+  }
+
+  button[type="button"]:hover {
+    background-color: #218838;
+  }
+
   .table-container {
     margin-top: 1rem;
     width: 100%;
+    overflow-x: auto;
   }
 
   table {
     width: 100%;
+    min-width: 300px;
     border-collapse: collapse;
     background-color: white;
     border-radius: 8px;
@@ -172,6 +227,12 @@
   td {
     padding: 1rem;
     color: #333;
+  }
+
+  .hole-number {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    color: #007bff;
   }
 
   tbody tr:hover {
