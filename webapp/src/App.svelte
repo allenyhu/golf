@@ -1,8 +1,38 @@
 <script>
   let distance = '';
-  let holes = [];
-  let currentHole = 0;
   let shotType = 'normal';
+  
+  // Load from localStorage synchronously before reactive statements run
+  function loadFromLocalStorage() {
+    if (typeof window === 'undefined') {
+      return { holes: [], currentHole: 0 };
+    }
+    
+    try {
+      const savedHoles = localStorage.getItem('golfHoles');
+      const savedCurrentHole = localStorage.getItem('golfCurrentHole');
+      
+      const holes = savedHoles ? JSON.parse(savedHoles) : [];
+      const currentHole = savedCurrentHole ? parseInt(savedCurrentHole, 10) : 0;
+      
+      return { holes, currentHole };
+    } catch (e) {
+      console.error('Error loading from localStorage:', e);
+      return { holes: [], currentHole: 0 };
+    }
+  }
+  
+  const { holes: initialHoles, currentHole: initialCurrentHole } = loadFromLocalStorage();
+  let holes = initialHoles;
+  let currentHole = initialCurrentHole;
+
+  // Save to localStorage whenever holes or currentHole changes
+  $: {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('golfHoles', JSON.stringify(holes));
+      localStorage.setItem('golfCurrentHole', currentHole.toString());
+    }
+  }
 
   function handleSubmit() {
     const dist = distance.trim();
