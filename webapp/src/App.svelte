@@ -86,6 +86,28 @@
   function formatShots(hole) {
     return hole.length > 0 ? hole.join(', ') : '-';
   }
+
+  async function exportRound() {
+    if (holes.length === 0) {
+      return;
+    }
+    
+    const lines = holes.map((hole, index) => {
+      const holeNumber = index + 1;
+      const shots = hole.length > 0 ? hole.join(', ') : '';
+      return `hole ${holeNumber}: ${shots}`;
+    });
+    
+    const exportText = lines.join('\n');
+    
+    try {
+      await navigator.clipboard.writeText(exportText);
+      alert('Round data copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      alert('Failed to copy to clipboard. Please try again.');
+    }
+  }
 </script>
 
 <main>
@@ -157,6 +179,7 @@
           </tbody>
         </table>
       </div>
+      <button type="button" class="export-button" on:click={exportRound}>Export Round</button>
     {/if}
   </div>
 </main>
@@ -307,9 +330,19 @@
     background-color: #c82333 !important;
   }
 
-  button[type="button"]:not(.penalty-button) {
+  button[type="button"]:not(.penalty-button):not(.export-button) {
     width: 100%;
     margin-top: 0.5rem;
+  }
+
+  .export-button {
+    width: 100%;
+    background-color: #6c757d;
+    margin-top: 1rem;
+  }
+
+  .export-button:hover {
+    background-color: #5a6268;
   }
 
   .table-container {
