@@ -245,7 +245,8 @@
 
   .toggle-group {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .toggle-option {
@@ -259,6 +260,7 @@
     background-color: white;
     transition: all 0.3s;
     flex: 1;
+    min-width: calc(50% - 0.25rem);
   }
 
   .toggle-option:hover {
@@ -401,6 +403,26 @@
 
   tbody tr:hover {
     background-color: #f8f9fa;
+  }
+
+  @media (max-width: 768px) {
+    main {
+      padding: 1rem;
+    }
+
+    .container {
+      gap: 1.5rem;
+    }
+
+    .toggle-option {
+      min-width: calc(50% - 0.25rem);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    form {
+      padding: 1rem;
+    }
   }
 </style>
 
