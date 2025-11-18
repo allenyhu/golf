@@ -25,6 +25,11 @@
   const { holes: initialHoles, currentHole: initialCurrentHole } = loadFromLocalStorage();
   let holes = initialHoles;
   let currentHole = initialCurrentHole;
+  let editingHoleIndex = null;
+  let showEditPopup = false;
+  let hoveredHoleIndex = null;
+  let editedShots = [];
+  let newShotValue = '';
 
   // Save to localStorage whenever holes or currentHole changes
   $: {
@@ -85,6 +90,45 @@
 
   function formatShots(hole) {
     return hole.length > 0 ? hole.join(', ') : '-';
+  }
+
+  function openEditPopup(holeIndex) {
+    editingHoleIndex = holeIndex;
+    // Create a copy of the shots array for editing
+    editedShots = holes[holeIndex] ? [...holes[holeIndex]] : [];
+    showEditPopup = true;
+  }
+
+  function closeEditPopup() {
+    showEditPopup = false;
+    editingHoleIndex = null;
+    editedShots = [];
+    newShotValue = '';
+  }
+
+  function saveEditedShots() {
+    if (editingHoleIndex !== null && holes[editingHoleIndex]) {
+      // Save the edited shots back to the holes array
+      holes[editingHoleIndex] = [...editedShots];
+      holes = [...holes]; // Trigger reactivity
+      closeEditPopup();
+    }
+  }
+
+  function addNewShot() {
+    const trimmed = newShotValue.trim();
+    if (trimmed !== '') {
+      editedShots = [...editedShots, trimmed];
+      editedShots = [...editedShots]; // Trigger reactivity
+      newShotValue = '';
+    }
+  }
+
+  function deleteShot(shotIndex) {
+    if (shotIndex >= 0 && shotIndex < editedShots.length) {
+      editedShots = editedShots.filter((_, i) => i !== shotIndex);
+      editedShots = [...editedShots]; // Trigger reactivity
+    }
   }
 
   async function exportRound() {
@@ -172,7 +216,22 @@
             {#each holes as hole, holeIndex}
               <tr>
                 <td class="hole-number">{holeIndex + 1}</td>
-                <td>{formatShots(hole)}</td>
+                <td 
+                  class="shots-cell"
+                  on:click={() => openEditPopup(holeIndex)}
+                  on:mouseenter={() => hoveredHoleIndex = holeIndex}
+                  on:mouseleave={() => hoveredHoleIndex = null}
+                >
+                  <span>{formatShots(hole)}</span>
+                  {#if hoveredHoleIndex === holeIndex}
+                    <button 
+                      class="edit-button-small"
+                      on:click|stopPropagation={() => openEditPopup(holeIndex)}
+                    >
+                      Edit
+                    </button>
+                  {/if}
+                </td>
                 <td class="score">{hole.length}</td>
               </tr>
             {/each}
@@ -183,4 +242,60 @@
     {/if}
   </div>
 </main>
+
+{#if showEditPopup && editingHoleIndex !== null}
+  <div class="popup-overlay" on:click={closeEditPopup}>
+    <div class="popup-content" on:click|stopPropagation>
+      <div class="popup-header">
+        <h2>Edit Shots - Hole {editingHoleIndex + 1}</h2>
+        <button class="close-button" on:click={closeEditPopup}>×</button>
+      </div>
+      <div class="popup-body">
+        {#if editedShots.length === 0}
+          <p>No shots recorded for this hole.</p>
+        {:else}
+          <div class="shots-list">
+            {#each editedShots as shot, shotIndex}
+              <div class="shot-item">
+                <input
+                  type="text"
+                  class="shot-input"
+                  bind:value={editedShots[shotIndex]}
+                  placeholder="Shot value"
+                />
+                <button 
+                  class="delete-shot-button"
+                  on:click={() => deleteShot(shotIndex)}
+                >
+                  Delete
+                </button>
+              </div>
+            {/each}
+          </div>
+        {/if}
+        <div class="add-shot-section">
+          <div class="add-shot-input-group">
+            <input
+              type="text"
+              class="new-shot-input"
+              bind:value={newShotValue}
+              placeholder="Enter new shot value"
+              on:keydown={(e) => e.key === 'Enter' && addNewShot()}
+            />
+            <button 
+              class="add-shot-button"
+              on:click={addNewShot}
+            >
+              Add Shot
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="popup-footer">
+        <button class="save-button" on:click={saveEditedShots}>Save</button>
+        <button class="cancel-button" on:click={closeEditPopup}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{/if}
 
