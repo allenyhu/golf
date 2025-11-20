@@ -69,6 +69,7 @@
     currentHole = holes.length;
     holes = [...holes, []];
     distance = '';
+    shotType = 'normal';
   }
 
   function handleKeydown(event) {
