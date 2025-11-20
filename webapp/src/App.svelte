@@ -213,20 +213,21 @@
             </tr>
           </thead>
           <tbody>
-            {#each holes as hole, holeIndex}
+            {#each [...holes].reverse() as hole, holeIndex}
+              {@const reverseIndex = holes.length - holeIndex - 1}
               <tr>
-                <td class="hole-number">{holeIndex + 1}</td>
+                <td class="hole-number">{reverseIndex + 1}</td>
                 <td 
                   class="shots-cell"
-                  on:click={() => openEditPopup(holeIndex)}
-                  on:mouseenter={() => hoveredHoleIndex = holeIndex}
+                  on:click={() => openEditPopup(reverseIndex)}
+                  on:mouseenter={() => hoveredHoleIndex = reverseIndex}
                   on:mouseleave={() => hoveredHoleIndex = null}
                 >
                   <span>{formatShots(hole)}</span>
-                  {#if hoveredHoleIndex === holeIndex}
+                  {#if hoveredHoleIndex === reverseIndex}
                     <button 
                       class="edit-button-small"
-                      on:click|stopPropagation={() => openEditPopup(holeIndex)}
+                      on:click|stopPropagation={() => openEditPopup(reverseIndex)}
                     >
                       Edit
                     </button>
