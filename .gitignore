@@ -1,5 +1,5 @@
 credentials.json
 token.json
-*.json
+
 cli/cli
 src/__pycache__/*
