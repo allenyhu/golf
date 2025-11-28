@@ -139,11 +139,11 @@ button:hover {
   background-color: #0056b3;
 }
 
-button[type="button"]:not(.penalty-button) {
+button[type="button"]:not(.penalty-button):not(.export-button):not(.clear-button) {
   background-color: #28a745;
 }
 
-button[type="button"]:not(.penalty-button):hover {
+button[type="button"]:not(.penalty-button):not(.export-button):not(.clear-button):hover {
   background-color: #218838;
 }
 
@@ -155,19 +155,50 @@ button[type="button"]:not(.penalty-button):hover {
   background-color: #c82333 !important;
 }
 
-button[type="button"]:not(.penalty-button):not(.export-button) {
+button[type="button"]:not(.penalty-button):not(.export-button):not(.clear-button) {
   width: 100%;
   margin-top: 0.5rem;
 }
 
-.export-button {
-  width: 100%;
-  background-color: #6c757d;
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
   margin-top: 1rem;
+  width: 100%;
+}
+
+.export-button {
+  flex: 1;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 0;
 }
 
 .export-button:hover {
-  background-color: #5a6268;
+  background-color: #218838;
+}
+
+.clear-button {
+  flex: 1;
+  background-color: #dc3545 !important;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 0;
+}
+
+.clear-button:hover {
+  background-color: #c82333 !important;
 }
 
 .table-container {

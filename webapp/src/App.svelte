@@ -153,6 +153,20 @@
       alert('Failed to copy to clipboard. Please try again.');
     }
   }
+
+  function clearRound() {
+    if (confirm('Are you sure you want to clear all round data? This cannot be undone.')) {
+      holes = [];
+      currentHole = 0;
+      distance = '';
+      shotType = 'normal';
+      // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('golfHoles');
+        localStorage.removeItem('golfCurrentHole');
+      }
+    }
+  }
 </script>
 
 <main>
@@ -240,7 +254,10 @@
           </tbody>
         </table>
       </div>
-      <button type="button" class="export-button" on:click={exportRound}>Export Round</button>
+      <div class="action-buttons">
+        <button type="button" class="clear-button" on:click={clearRound}>Clear Round</button>
+        <button type="button" class="export-button" on:click={exportRound}>Export Round</button>
+      </div>
     {/if}
   </div>
 </main>
