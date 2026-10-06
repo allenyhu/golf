@@ -108,6 +108,17 @@ h1 {
   color: #ff6b35;
 }
 
+.random-obstruction {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+.random-obstruction strong {
+  font-size: 2rem;
+  color: #ff6b35;
+}
+
 button:not(.mode-button) {
   padding: 0.75rem 2rem;
   font-size: 1rem;
@@ -157,13 +168,15 @@ button:not(.mode-button):hover {
 
   .random-number,
   .random-shape,
-  .random-club {
+  .random-club,
+  .random-obstruction {
     font-size: 1rem;
   }
 
   .random-number strong,
   .random-shape strong,
-  .random-club strong {
+  .random-club strong,
+  .random-obstruction strong {
     font-size: 1.5rem;
   }
 
@@ -180,4 +193,3 @@ button:not(.mode-button):hover {
     margin: 0;
   }
 }
-
